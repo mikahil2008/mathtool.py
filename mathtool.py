@@ -1,70 +1,143 @@
-MAX_VALUE = 10000
-import math
 import sys
-reference_data = """mathtool — решение уравнений вида A*x^2 + B*x + C = 0
+import math
 
-Использование:
-    python mathtool.py                         вывод справки
-    python mathtool.py --help                  вывод справки
-    python mathtool.py solve                   ввод коэффициентов с клавиатуры
-    python mathtool.py solve -a 1 -b -3 -c 2   решение с заданными коэффициентами
+from cli import build_parser
+from calc import equation, stats, series, integration
 
-Коэффициенты A, B, C — целые числа, по модулю не превышающие 10000."""
+def handle_solve(args):
+    """Обработчик команды solve"""
+    given = [args.a is not None, args.b is not None, args.c is not None]
+    if any(given) and not all(given):
+        raise ValueError("заданы не все коэффициенты")
 
-if (len(sys.argv) == 1) or sys.argv[1] == '--help':
-    print(reference_data)
-    sys.exit(0)
+    if all(given):
+        a, b, c = args.a, args.b, args.c
+    else:
+        a = int(input("Введите A: "))
+        b = int(input("Введите B: "))
+        c = int(input("Введите C: "))
 
-if(len(sys.argv) == 2) and sys.argv[1] != 'solve':
-    print('ОШИБКА: команда не найдена',file=sys.stderr)
-    sys.exit(1)
+    equation.check_coefficients(a, b, c)
+    kind, d, roots = equation.solve(a, b, c)
 
-if (len(sys.argv) == 2) and sys.argv[1] == 'solve':
+    print(f"Уравнение {kind}")
+    if d is not None:
+        print(f"Дискриминант: {d}")
+    if len(roots) == 0:
+        print("Действительных корней нет")
+    elif len(roots) == 1:
+        print(f"x = {roots[0]:.3f}")
+    else:
+        print(f"x1 = {roots[0]:.3f}")
+        print(f"x2 = {roots[1]:.3f}")
+
+    return 0
+
+def handle_stats(args):
+    """Обработчик команды stats"""
+    if args.input:
+        with open(args.input, encoding="utf-8-sig") as f:
+            lines = f.readlines()
+    else:
+        lines = sys.stdin.readlines()
+
+    values = []
+    for line in lines:
+        for word in line.split():
+            try:
+                v = float(word)
+            except ValueError:
+                raise ValueError(f"{word} не является числом")
+            values.append(v)
+
+    if not values:
+        raise ValueError("последовательность пуста")
+    if len(values) > stats.MAX_COUNT:
+        raise ValueError("слишком много чисел")
+    for v in values:
+        if not math.isfinite(v):
+            raise ValueError("значение не является конечным")
+        if abs(v) > stats.MAX_ABS:
+            raise ValueError("значение вне допустимого диапазона")
+
+    for label, func, form in stats.REPORT:
+        value = func(values)
+        if value is None:
+            print(f"{label}: НЕ СУЩЕСТВУЕТ")
+        else:
+            print(f"{label}: {value:{form}}")
+
+    return 0
+
+def handle_series(args):
+    """Обработчик команды series"""
+    term, formula = series.FORMULAS[args.func]
+
+    if args.terms is not None:
+        count = args.terms
+        if not (1 <= count <= series.MAX_TERMS):
+            raise ValueError("количество слагаемых вне диапазона")
+        result, n = series.sum_by_count(term, count)
+    else:
+        eps = args.eps
+        if not (math.isfinite(eps) and 0 < eps <= series.MAX_EPS):
+            raise ValueError("точность вне диапазона")
+        result, n = series.sum_by_eps(term, eps)
+
+    print(formula)
+    print(f"Слагаемых: {n}")
+    print(f"Сумма ряда: {result:.{series.DIGITS}f}")
+
+    return 0
+
+def handle_integrate(args):
+    """Обработчик команды integrate"""
+    f, formula, low, high, inclusive = integration.FUNCTIONS[args.func]
+
+    a = args.start
+    b = args.to
+    steps = args.steps
+
+    if not (math.isfinite(a) and math.isfinite(b)):
+        raise ValueError("предел не является конечным числом")
+    if a >= b:
+        raise ValueError("начальный предел не меньше конечного")
+    if inclusive:
+        if a < low or b > high:
+            raise ValueError("предел вне промежутка")
+    else:
+        if a <= low or b >= high:
+            raise ValueError("предел вне промежутка")
+    if not (1 <= steps <= integration.MAX_STEPS):
+        raise ValueError("количество шагов вне диапазона")
+
+    print(formula)
+    result = integration.integrate(f, a, b, steps)
+    print(f"Значение интеграла: {result:.{integration.DIGITS}f}")
+
+    return 0
+
+HANDLERS = {
+    "solve": handle_solve,
+    "stats": handle_stats,
+    "series": handle_series,
+    "integrate": handle_integrate,
+}
+
+def main(argv):
+    """Точка входа: разбор параметров и вызов обработчика"""
+    parser = build_parser()
+    args = parser.parse_args(argv)
+
+    if args.command is None:
+        parser.print_help()
+        return 0
+
     try:
-        a = int(input('Введите первое число:'))
-        b = int(input('Введите второе число:'))
-        c = int(input('Введите третье число:'))
-    except ValueError:
-        print('ОШИБКА: коэффициенты не являются целыми числами',file=sys.stderr)
-        sys.exit(1)
-elif (len(sys.argv) == 8) and sys.argv[1] == 'solve':
-    if (sys.argv[2] != '-a') or (sys.argv[4] != '-b') or (sys.argv[6] != '-c'):
-        print('ОШИБКА: введен неизвестный параметр',file=sys.stderr)
-        sys.exit(1)
-    try:
-        a = int(sys.argv[3])
-        b = int(sys.argv[5])
-        c = int(sys.argv[7])
-    except ValueError:
-        print('ОШИБКА: коэффициент не является целым числом',file=sys.stderr)
-        sys.exit(1)
-else:
-    print('ОШИБКА: неверный набор параметров',file=sys.stderr)
-    sys.exit(1)
-if abs(a)>MAX_VALUE or abs(b)>MAX_VALUE or abs(c)>MAX_VALUE:
-    print('ОШИБКА: значения коэффициентов по модулю превышают 10 000',file=sys.stderr)
-    sys.exit(1)
-elif a == 0 and b == 0:
-    print('ОШИБКА: не уравнение - неизвестного нет',file=sys.stderr)
-    sys.exit(1)
-elif a == 0 and b != 0:
-    print('Уравнение линейное')
-    x = -c / b
-    print(f'x = {x:.3f}')
-    sys.exit(0)
-else:
-    D = b*b - 4 * a * c
-    print('Квадратное уравнение','Дискриминант равен:',D)
-    if D < 0:
-        print('Корней нет')
-        sys.exit(0)
-    elif D > 0:
-        x1 = (-b + math.sqrt(D)) / (2 * a)
-        x2 = (-b - math.sqrt(D)) / (2 * a)
-        print(f'x1 = {x1:.3f}')
-        print(f'x2 = {x2:.3f}')
-        sys.exit(0)
-    elif D == 0:
-        x = -b / (2*a)
-        print(f'x = {x:.3f}')
-        sys.exit(0)
+        return HANDLERS[args.command](args)
+    except (ValueError, OSError) as e:
+        print(f"ОШИБКА: {e}", file=sys.stderr)
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
