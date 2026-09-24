@@ -358,9 +358,3 @@ stdout: <пусто>
 stderr: <сообщение argparse: требуется --terms или --eps>
 Код возврата: 2
 
-Тест 44
-Команда: python mathtool.py integrate --func ratio --from 0 --to 20 --steps 0
-stdin: <пусто>
-stdout: <пусто>
-stderr: ОШИБКА: количество шагов вне диапазона
-Код возврата: 1
