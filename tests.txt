@@ -358,3 +358,20 @@ stdout: <пусто>
 stderr: <сообщение argparse: требуется --terms или --eps>
 Код возврата: 2
 
+
+python mathtool.py fill -c 5 --seed 42 → 63 -72 -94 89 -30
+python mathtool.py fill -c 0 → ОШИБКА: количество элементов вне диапазона 1..1000000 (в stderr, код возврата 1)
+python mathtool.py sort -m bubble -i example.txt → -76 -5 24 43 81, затем Массив отсортирован.
+python mathtool.py sort -m selection -i example.txt -o example_sorted.txt → Записано элементов: 5 в файл example_sorted.txt и Массив отсортирован.
+python mathtool.py sort -m insertion -i example.txt → -76 -5 24 43 81 и Массив отсортирован.
+python mathtool.py sort -m counting -i example.txt --order desc → 81 43 24 -5 -76 и Массив отсортирован.
+python mathtool.py search -v 43 -i example_sorted.txt → Значение 43 имеет элемент с индексом 4. (код 0)
+python mathtool.py search -v 15 -i example_sorted.txt → Значение 15 не найдено. (код 1)
+python mathtool.py search -v 43 -i example.txt → ОШИБКА: массив не упорядочен по возрастанию (код 1)
+
+
+python mathtool.py sort -m bubble    -i timing_1000.txt -o sorted_1000_bubble.txt
+python mathtool.py sort -m selection -i timing_1000.txt -o sorted_1000_selection.txt
+python mathtool.py sort -m insertion -i timing_1000.txt -o sorted_1000_insertion.txt
+python mathtool.py sort -m counting  -i timing_1000.txt -o sorted_1000_counting.txt
+
