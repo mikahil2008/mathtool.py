@@ -1,8 +1,17 @@
 import sys
 import math
+import time
 
 from cli import build_parser
-from calc import equation, stats, series, integration
+from calc import equation, stats, series, integration, arrays, sorting
+
+def measure(name, operation, parameters):
+    """Измеряет время расчётной операции и печатает его в stderr"""
+    start = time.perf_counter()
+    result = operation(*parameters)
+    elapsed = time.perf_counter() - start
+    print(f"Время операции {name}: {elapsed:.6f} с", file=sys.stderr)
+    return result
 
 def handle_solve(args):
     """Обработчик команды solve"""
@@ -117,11 +126,65 @@ def handle_integrate(args):
 
     return 0
 
+def handle_fill(args):
+    """Обработчик команды fill"""
+    if not (1 <= args.count <= arrays.MAX_COUNT):
+        raise ValueError("количество элементов вне диапазона 1..1000000")
+    if not (arrays.MIN_VALUE <= args.min <= args.max <= arrays.MAX_VALUE):
+        raise ValueError("границы значений вне диапазона -100..100 или min > max")
+
+    array = measure("fill", arrays.generate,
+                    [args.count, args.min, args.max, args.seed])
+
+    count, path = arrays.write_array(args.output, array)
+    if path is not None:
+        print(f"Записано элементов: {count} в файл {path}")
+
+    return 0
+
+def handle_sort(args):
+    """Обработчик команды sort"""
+    if args.method not in sorting.METHODS:
+        allowed = ", ".join(sorting.METHODS)
+        raise ValueError(f"метод сортировки должен быть одним из: {allowed}")
+
+    array = arrays.read_array(args.input)
+    descending = args.order == "desc"
+    measure(f"sort ({args.method})",
+            sorting.METHODS[args.method], [array, descending])
+
+    count, path = arrays.write_array(args.output, array)
+    if path is not None:
+        print(f"Записано элементов: {count} в файл {path}")
+    print("Массив отсортирован.")
+
+    return 0
+
+def handle_search(args):
+    """Обработчик команды search"""
+    if abs(args.value) > arrays.MAX_SEARCH:
+        raise ValueError("модуль искомого значения не больше 1000")
+
+    array = arrays.read_array(args.input)
+    if not arrays.is_ordered(array):
+        raise ValueError("массив не упорядочен по возрастанию")
+
+    index = arrays.binary_search(array, args.value)
+    if index is None:
+        print(f"Значение {args.value} не найдено.", file=sys.stderr)
+        return 1
+
+    print(f"Значение {args.value} имеет элемент с индексом {index + 1}.")
+    return 0
+
 HANDLERS = {
     "solve": handle_solve,
     "stats": handle_stats,
     "series": handle_series,
     "integrate": handle_integrate,
+    "fill": handle_fill,
+    "sort": handle_sort,
+    "search": handle_search,
 }
 
 def main(argv):
