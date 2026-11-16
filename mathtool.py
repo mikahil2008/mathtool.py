@@ -5,13 +5,14 @@ import time
 from cli import build_parser
 from calc import equation, stats, series, integration, arrays, sorting
 
-def measure(name, operation, parameters):
+def measure(name, operation, parameters, report=True):
     """Измеряет время расчётной операции и печатает его в stderr"""
     start = time.perf_counter()
     result = operation(*parameters)
     elapsed = time.perf_counter() - start
-    print(f"Время операции {name}: {elapsed:.6f} с", file=sys.stderr)
-    return result
+    if report:
+        print(f"Время операции {name}: {elapsed:.6f} с", file=sys.stderr)
+    return result, elapsed
 
 def handle_solve(args):
     """Обработчик команды solve"""
@@ -133,7 +134,7 @@ def handle_fill(args):
     if not (arrays.MIN_VALUE <= args.min <= args.max <= arrays.MAX_VALUE):
         raise ValueError("границы значений вне диапазона -100..100 или min > max")
 
-    array = measure("fill", arrays.generate,
+    array, _ = measure("fill", arrays.generate,
                     [args.count, args.min, args.max, args.seed])
 
     count, path = arrays.write_array(args.output, array)
@@ -152,10 +153,10 @@ def handle_sort(args):
     descending = args.order == "desc"
     measure(f"sort ({args.method})",
             sorting.METHODS[args.method], [array, descending])
-
-    count, path = arrays.write_array(args.output, array)
-    if path is not None:
-        print(f"Записано элементов: {count} в файл {path}")
+    if args.output:
+        count, path = arrays.write_array(args.output, array)
+        if path is not None:
+            print(f"Записано элементов: {count} в файл {path}")
     print("Массив отсортирован.")
 
     return 0

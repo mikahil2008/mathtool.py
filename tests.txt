@@ -375,3 +375,5 @@ python mathtool.py sort -m selection -i timing_1000.txt -o sorted_1000_selection
 python mathtool.py sort -m insertion -i timing_1000.txt -o sorted_1000_insertion.txt
 python mathtool.py sort -m counting  -i timing_1000.txt -o sorted_1000_counting.txt
 
+python mathtool.py fill -c 10000 --seed 42 -o test1.txt
+python benchmark.py test1.txt
