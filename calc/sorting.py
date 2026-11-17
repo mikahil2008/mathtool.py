@@ -7,9 +7,11 @@ def _wrong_order(a, b, descending):
     if descending:
         return a < b
     return a > b
+
 def _earlier(a, b, descending):
-    """Истино если a должно стоять раньше b"""
-    return a < b
+    """Истинно, если a должно стоять раньше b (сравнение строгое)"""
+    return _wrong_order(b, a, descending)
+
 
 def bubble(values, descending=False):
     """Сортировка пузырьком"""

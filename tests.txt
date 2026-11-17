@@ -375,5 +375,18 @@ python mathtool.py sort -m selection -i timing_1000.txt -o sorted_1000_selection
 python mathtool.py sort -m insertion -i timing_1000.txt -o sorted_1000_insertion.txt
 python mathtool.py sort -m counting  -i timing_1000.txt -o sorted_1000_counting.txt
 
-python mathtool.py fill -c 10000 --seed 42 -o test1.txt
-python benchmark.py test1.txt
+fill -c 5 --seed 42	63 -72 -94 89 -30
+fill -c 0	ОШИБКА: количество элементов вне диапазона 1..1000000
+sort -m bubble -i example.txt	-76 -5 24 43 81; Массив отсортирован.
+sort -m selection -i example.txt -o example_sorted.txt	Записано элементов: 5 в файл example_sorted.txt; Массив отсортирован.
+sort -m insertion -i example.txt	-76 -5 24 43 81; Массив отсортирован.
+sort -m counting -i example.txt --order desc	81 43 24 -5 -76; Массив отсортирован.
+search -v 43 -i example_sorted.txt	Значение 43 имеет элемент с индексом 4.
+search -v 15 -i example_sorted.txt	Значение 15 не найдено.
+search -v 43 -i example.txt	ОШИБКА: массив не упорядочен по возрастанию
+
+python mathtool.py fill -c 1000 --seed 1 -o data_1000.txt
+python mathtool.py sort -m quick -i data_1000.txt -o result_quick.txt
+python mathtool.py sort -m merge -i data_1000.txt -o result_merge.txt
+python mathtool.py sort -m heap -i data_1000.txt -o result_heap.txt
+python benchmark.py > table.txt
