@@ -3,7 +3,7 @@ import math
 import time
 
 from cli import build_parser
-from calc import equation, stats, series, integration, arrays, sorting
+from calc import equation, stats, series, integration, arrays, sorting, selection
 
 def measure(name, operation, parameters, report=True):
     """Измеряет время расчётной операции и печатает его в stderr"""
@@ -178,6 +178,25 @@ def handle_search(args):
     print(f"Значение {args.value} имеет элемент с индексом {index + 1}.")
     return 0
 
+def handle_select(args):
+    """Обработчик команды select"""
+    array = arrays.read_array(args.input)
+    result, _ = measure("select", selection.statistic,
+                        [array, args.rank, args.seed])
+    print(f"Значение порядковой статистики: {result}")
+    return 0
+
+def handle_shuffle(args):
+    """Обработчик команды shuffle"""
+    array = arrays.read_array(args.input)
+    arrays.shuffle(array, args.seed)
+    count, path = arrays.write_array(args.output, array)
+    if path is not None:
+        print(f"Записано элементов: {count} в файл {path}")
+    print("Массив перемешан.")
+    return 0
+
+
 HANDLERS = {
     "solve": handle_solve,
     "stats": handle_stats,
@@ -186,6 +205,8 @@ HANDLERS = {
     "fill": handle_fill,
     "sort": handle_sort,
     "search": handle_search,
+    "select": handle_select,
+    "shuffle": handle_shuffle,
 }
 
 def main(argv):

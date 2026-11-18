@@ -75,4 +75,22 @@ def build_parser():
     p_search.add_argument("-i", "--input", default=None,
                           help="файл с массивом по возрастанию")
 
+    p_select = subparsers.add_parser("select", allow_abbrev=False,
+                                     help="k-я порядковая статистика")
+    p_select.add_argument("-k", "--rank", type=int, required=True,
+                          help="номер статистики, от 1 до длины массива")
+    p_select.add_argument("-i", "--input", default=None,
+                          help="файл с исходным массивом")
+    p_select.add_argument("--seed", type=int, default=None,
+                          help="начальное значение генератора")
+
+    p_shuffle = subparsers.add_parser("shuffle", allow_abbrev=False,
+                                      help="перемешивание Фишера-Йетса")
+    p_shuffle.add_argument("-i", "--input", default=None,
+                           help="файл с исходным массивом")
+    p_shuffle.add_argument("--seed", type=int, default=None,
+                           help="начальное значение генератора")
+    p_shuffle.add_argument("-o", "--output", default=None,
+                           help="файл для перемешанного массива")
+
     return parser
