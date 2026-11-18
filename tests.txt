@@ -390,3 +390,11 @@ python mathtool.py sort -m quick -i data_1000.txt -o result_quick.txt
 python mathtool.py sort -m merge -i data_1000.txt -o result_merge.txt
 python mathtool.py sort -m heap -i data_1000.txt -o result_heap.txt
 python benchmark.py > table.txt
+
+select -k 4 -i selection.txt --seed 1	Значение порядковой статистики: 35; код 0
+select -k 0 -i selection.txt	сообщение об ошибке в stderr; код 1
+select -k 10 -i selection.txt	сообщение об ошибке в stderr; код 1
+select -k abc -i selection.txt	ошибка argparse; код 2
+shuffle -i selection.txt --seed 1 -o shuffled.txt	запись 9 элементов; Массив перемешан.; код 0
+shuffle -i selection.txt --seed 1 -o shuffled2.txt	содержимое файлов совпадает
+python -m unittest discover -s tests -v
