@@ -85,3 +85,10 @@ def binary_search(values, target):
         else:
             right = middle - 1
     return None
+
+def shuffle(values, seed=None):
+    """Несмещённое перемешивание Фишера-Йетса на месте; возвращает None"""
+    rng = random.Random(seed)
+    for i in range(len(values) - 1, 0, -1):
+        j = rng.randint(0, i)
+        values[i], values[j] = values[j], values[i]
